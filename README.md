@@ -1,2 +1,2 @@
-# Comon---AOS
+# Comon - AOS
 Comon Android repository

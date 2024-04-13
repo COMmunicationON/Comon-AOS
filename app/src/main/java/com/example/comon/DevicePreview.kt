@@ -15,3 +15,4 @@ import androidx.compose.ui.tooling.preview.Preview
     device = "spec:width=360dp,height=800dp,dpi=500"
 )
 annotation class DevicePreview
+

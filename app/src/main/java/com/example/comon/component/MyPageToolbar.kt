@@ -33,11 +33,6 @@ fun MyPageToolbar(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
-        Image(
-            painter = painterResource(id = R.drawable.chevron_left),
-            contentDescription = "장바구니",
-            modifier = Modifier.clickable { onItemClick() }
-        )
     }
 }
 

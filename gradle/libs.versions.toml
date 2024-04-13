@@ -1,5 +1,5 @@
 [versions]
-agp = "8.1.2"
+agp = "8.3.0"
 kotlin = "1.8.10"
 kotlinx="1.9.2"
 coreKtx = "1.12.0"
@@ -9,7 +9,7 @@ espressoCore = "3.5.1"
 lifecycleRuntimeKtx = "2.7.0"
 activityCompose = "1.8.2"
 coil = "2.5.0"
-composeBom = "2024.03.00"
+composeBom = "2024.04.00"
 retrofit2 = "2.9.0"
 # Compose compiler의 버전은 Kotlin의 버전에 의존된다
 ok2CurlInterceptor = "0.7.0"
@@ -17,9 +17,11 @@ okhttp3 = "4.12.0"
 kotlin-coroutines = "1.7.3"
 kotlin-serialization = "1.6.2"
 lifecycleCompose="2.7.0"
-composeRuntime="1.6.0"
+composeRuntime="1.6.5"
 ossLicenses = "17.0.1"
 ossLicensesPlugin = "0.10.6"
+nav_version = "2.7.7"
+material="1.6.5"
 
 
 [libraries]
@@ -60,8 +62,11 @@ okhttp3-logginInterceptor = { module = "com.squareup.okhttp3:logging-interceptor
 okhttp3-ok2CurlInterceptor = { module = "com.github.mrmike:ok2curl", version.ref = "ok2CurlInterceptor" }
 okhttp3-urlConnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp3" }
 
+navigation = { group =  "androidx.navigation", name="navigation-compose" , version.ref ="nav_version"}
+
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
 oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "ossLicenses" }
+material = {group="androidx.compose.material",name="material", version.ref = "material" }
 
 [bundles]
 

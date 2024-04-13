@@ -5,9 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
@@ -17,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -25,6 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
+import com.example.comon.DevicePreview
 import com.example.comon.R
 import com.example.comon.ui.theme.ComonTheme
 
@@ -47,12 +45,12 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
         )
         Spacer(modifier = Modifier.height(30.dp))
         Text(
-            text = "COMON",
+            text = "Co:mon",
             style = TextStyle(
                 fontFamily = FontFamily(
                     Font(R.font.pretendardvariable)
                 ),
-                fontSize = 25.sp, // Adjust the font size as needed
+                fontSize = 30.sp,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
                 color = Color(0xff6956E5)
             )
@@ -122,7 +120,7 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
 
 }
 
-@Preview(showBackground = true)
+@DevicePreview
 @Composable
 fun LoginPreview() {
     ComonTheme {

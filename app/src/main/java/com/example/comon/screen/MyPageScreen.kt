@@ -32,20 +32,15 @@ fun MyPageScreen() {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.chevron_left),
-            contentDescription = "뒤로가기",
-            modifier = Modifier.padding(top = 36.dp, start = 24.dp)
-        )
         LazyColumn {
             item {
                 MyPageToolbar(
                     title = "마이페이지",
                     onItemClick = {},
-                    modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 25.dp)
+                    modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 50.dp, bottom = 40.dp)
                 )
                 Profile(
-                    url = "https://avatars.githubusercontent.com/u/54518925?v=4",
+                    url = "https://avatars.githubusercontent.com/u/80382025?s=400&u=315cf0772677a2981fa97ab9401863f754e2148b&v=4",
                     name = "최상",
                     email = "sang8408@gmail.com"
                 )

@@ -23,6 +23,9 @@ ossLicensesPlugin = "0.10.6"
 nav_version = "2.7.7"
 material="1.6.5"
 
+speechStudio="1.34.0"
+diffUtil="4.12"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -67,6 +70,8 @@ navigation = { group =  "androidx.navigation", name="navigation-compose" , versi
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
 oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "ossLicenses" }
 material = {group="androidx.compose.material",name="material", version.ref = "material" }
+speechstudio= {group = "com.microsoft.cognitiveservices.speech", name = "client-sdk", version = "speechStudio"}
+diffutil= {group = "io.github.java-diff-utils", name = "java-diff-utils", version = "diffUtil"}
 
 [bundles]
 

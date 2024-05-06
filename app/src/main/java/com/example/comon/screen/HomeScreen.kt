@@ -39,17 +39,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.comon.DevicePreview
 import com.example.comon.R
 import com.example.comon.component.CourseBox
 import com.example.comon.ui.theme.ComonTheme
 import com.example.comon.ui.theme.Purple40
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController : NavController) {
     val username: String by remember { mutableStateOf("상이") } //user name
     val weakness by remember { mutableStateOf("ㄴ") } //user weakness
 
@@ -232,12 +235,9 @@ fun HomeScreen() {
                     .padding(horizontal = 10.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
-                Box(modifier = Modifier
-                    .clickable {
-
-                    })
+                Box(modifier = Modifier)
                 {
-                    CourseBox(department = "음절")
+                    CourseBox(department = "음절", navController)
                     Image(
                         painter = painterResource(id = R.drawable.um_img),
                         contentDescription = null,
@@ -248,7 +248,7 @@ fun HomeScreen() {
                 }
                 Box(modifier = Modifier)
                 {
-                    CourseBox(department = "단어")
+                    CourseBox(department = "단어", navController)
                     Image(
                         painter = painterResource(id = R.drawable.word_img),
                         contentDescription = null,
@@ -266,7 +266,7 @@ fun HomeScreen() {
             ) {
                 Box(modifier = Modifier)
                 {
-                    CourseBox(department = "문장")
+                    CourseBox(department = "문장", navController)
                     Image(
                         painter = painterResource(id = R.drawable.senten_img),
                         contentDescription = null,
@@ -278,7 +278,7 @@ fun HomeScreen() {
                 }
                 Box(modifier = Modifier)
                 {
-                    CourseBox(department = "오답노트")
+                    CourseBox(department = "오답노트", navController)
                     Image(
                         painter = painterResource(id = R.drawable.note_img),
                         contentDescription = null,
@@ -300,7 +300,8 @@ fun HomeScreen() {
 @DevicePreview
 @Composable
 fun HomePreview() {
+    val nav = rememberNavController()
     ComonTheme {
-        HomeScreen()
+        HomeScreen(nav)
     }
 }

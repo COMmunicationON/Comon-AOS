@@ -1,10 +1,11 @@
 package com.example.comon.screen
 
+import RequestRecordAudioPermission
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ import com.example.comon.R
 import com.example.comon.component.Numbering
 import com.example.comon.model.TrainingModel
 import com.example.comon.ui.theme.ComonTheme
+import com.example.comon.util.MicrophoneStream
 import com.example.comon.util.RecordUtil
 import com.example.comon.util.Word
 import com.github.difflib.DiffUtils
@@ -59,7 +61,6 @@ import com.microsoft.cognitiveservices.speech.PronunciationAssessmentResult
 import com.microsoft.cognitiveservices.speech.SpeechConfig
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
-import com.microsoft.cognitiveservices.speech.samples.sdkdemo.MicrophoneStream
 import java.util.ArrayList
 import java.util.Locale
 
@@ -71,24 +72,20 @@ fun WordScreen(
     viewModel: TrainingViewModel = viewModel()
     )
 {
-    var courseLevel : Int by remember { mutableIntStateOf(1) } //1번 문제 (1/10)
-    var word: String by remember { mutableStateOf("") } //수박
-    val mic: Boolean by remember { mutableStateOf(true) }
-    val micColor =  remember(mic) {
-        if (mic) Color(0xFF14FF00) else Color.Gray
-    }
+    val courseLevel by remember { mutableIntStateOf(1) } //1번 문제 (1/10)
+    var word by remember { mutableStateOf("") } //수박
+    val referenceText by remember { mutableStateOf("꿈만 같아") } //테스트
+
+
+//    val mic by remember { mutableStateOf(true) }
+//    val micColor =  remember(mic) {
+//        if (mic) Color(0xFF14FF00) else Color.Gray
+//    }
 
     val trainingData by viewModel.trainingData.observeAsState()
     val dataList = trainingData
 
-    val context = LocalContext.current
-
-    var isButtonEnabled by remember { mutableStateOf(true) }
-    var recognizedText by remember { mutableStateOf("true") }
-    val speechSubscriptionKey = "8cca489f7031489985e9d0f8a704821b"
-    val speechRegion = "koreacentral"
-
-    var microphoneStream: MicrophoneStream? = null
+    val (showRecordUtil, setShowRecordUtil) = remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
         word= null.toString()
@@ -114,30 +111,6 @@ fun WordScreen(
                 // 단어, 음절, 음소를 리스트 또는 변수에 저장하는 코드 추가...
             }
         }
-    }
-
-    fun releaseMicrophoneStream() {
-        microphoneStream?.close()
-        microphoneStream = null
-    }
-
-    fun createMicrophoneStream(): MicrophoneStream? {
-        releaseMicrophoneStream()
-        microphoneStream = MicrophoneStream(context)
-        return microphoneStream
-    }
-
-    fun appendTextLine(s: String, erase: Boolean) {
-        recognizedText = if (erase) s else "${recognizedText}\n$s"
-    }
-
-    // create config
-    val speechConfig: SpeechConfig
-
-    try {
-        speechConfig = SpeechConfig.fromSubscription(speechSubscriptionKey, speechRegion)
-    } catch (ex: Exception) {
-        return
     }
 
     Box(
@@ -215,6 +188,7 @@ fun WordScreen(
             Spacer(modifier = Modifier.height(25.dp))
             Row(
                 modifier = Modifier.padding(start = 15.dp, bottom = 5.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.Bottom
             )
             {
@@ -284,151 +258,160 @@ fun WordScreen(
 //                    tint = micColor
 //                )
 //            }
-            IconButton(
-                onClick = {
-                    //assessmentClick(speechSubscriptionKey, speechRegion, speechConfig)
-                    val logTag = "recordUtil"
-
-                    releaseMicrophoneStream()
-
-                    try {
-                        createMicrophoneStream()
-                        val audioConfig = AudioConfig.fromStreamInput(createMicrophoneStream())
-
-                        val reco = SpeechRecognizer(speechConfig, "ko-KR", audioConfig)
-
-                        val pronConfig = PronunciationAssessmentConfig(
-                            word,
-                            PronunciationAssessmentGradingSystem.HundredMark,
-                            PronunciationAssessmentGranularity.Phoneme
-                        )
-
-                        pronConfig.applyTo(reco)
-
-                        val recognizedWords = ArrayList<String>()
-                        val pronWords = ArrayList<Word>()
-                        val totalDurations = longArrayOf(0, 0)
-                        val offsets = longArrayOf(0, 0)
-                        val totalAccuracyScore = doubleArrayOf(0.0)
-
-                        reco.recognized.addEventListener { _, speechRecognitionResultEventArgs ->
-                            val s = speechRecognitionResultEventArgs.result.text
-                            Log.i(
-                                logTag,
-                                "Final result received: $s"
-                            )
-                            val pronResult =
-                                PronunciationAssessmentResult.fromResult(speechRecognitionResultEventArgs.result)
-                            Log.i(
-                                logTag, "Accuracy score: ${pronResult.accuracyScore};" +
-                                        "  pronunciation score: ${pronResult.pronunciationScore}," +
-                                        " completeness score: ${pronResult.completenessScore}," +
-                                        " fluency score: ${pronResult.fluencyScore}"
-                            )
-
-                            for (w in pronResult.words) {
-                                val word = Word(
-                                    w.word,
-                                    w.errorType,
-                                    w.accuracyScore,
-                                    w.duration / 10000,
-                                    w.offset / 10000
-                                )
-                                pronWords.add(word)
-                                recognizedWords.add(word.word)
-                                totalAccuracyScore[0] += word.duration * word.accuracyScore
-                                totalDurations[0] += word.duration
-                                if (word.errorType == "None") {
-                                    totalDurations[1] += word.duration + 10
-                                }
-                                offsets[1] = word.offset + word.duration + 10
-                            }
-                        }
-
-                        reco.sessionStopped.addEventListener { _, _ ->
-                            Log.i(logTag, "Session stopped.")
-                            reco.stopContinuousRecognitionAsync()
-
-                            val accuracyScore = totalAccuracyScore[0] / totalDurations[0]
-                            var fluencyScore = 0.0
-                            if (!recognizedWords.isEmpty()) {
-                                offsets[0] = pronWords[0].offset
-                                fluencyScore =
-                                    totalDurations[1].toDouble() / (offsets[1] - offsets[0]) * 100
-                            }
-
-                            val referenceWords =
-                                word.lowercase(Locale.ROOT).split(" ").toTypedArray()
-                            for (j in referenceWords.indices) {
-                                referenceWords[j] =
-                                    referenceWords[j].replace("^\\p{Punct}+|\\p{Punct}+$".toRegex(), "")
-                            }
-                            val diff = DiffUtils.diff(listOf(*referenceWords), recognizedWords, true)
-
-                            var currentIdx = 0
-                            val finalWords = ArrayList<Word>()
-                            val validWord = intArrayOf(0)
-                            for (d in diff.deltas) {
-                                when (d.type!!) {
-                                    DeltaType.EQUAL -> {
-                                        for (i in currentIdx until currentIdx + d.source.size()) {
-                                            finalWords.add(pronWords[i])
-                                        }
-                                        currentIdx += d.target.size()
-                                        validWord[0] += d.target.size()
-                                    }
-
-                                    DeltaType.DELETE, DeltaType.CHANGE -> {
-                                        for (w in d.source.lines) {
-                                            finalWords.add(Word(w, "Omission"))
-                                        }
-                                    }
-
-                                    DeltaType.INSERT -> {
-                                        for (i in currentIdx until currentIdx + d.target.size()) {
-                                            val w = pronWords[i]
-                                            w.errorType = "Insertion"
-                                            finalWords.add(w)
-                                        }
-                                        currentIdx += d.target.size()
-                                    }
-                                }
-                            }
-
-                            val completenessScore = validWord[0].toDouble() / referenceWords.size * 100
-
-                            appendTextLine(
-                                "Paragraph accuracy score: $accuracyScore," +
-                                        " completeness score: $completenessScore, fluency score: $fluencyScore\n",
-                                true
-                            )
-                            for (w in finalWords) {
-                                appendTextLine(
-                                    " word: ${w.word}\taccuracy score: " +
-                                            "${w.accuracyScore}\terror type: ${w.errorType}", false
-                                )
-                            }
-
-                            releaseMicrophoneStream()
-                        }
-
-                        reco.startContinuousRecognitionAsync()
-                    } catch (ex: Exception) {
-                        Log.e(logTag, ex.message ?: "")
-                    }
-                },
-                modifier = Modifier
+//            IconButton(
+//                onClick = {
+//                    val logTag = "recordUtil"
+//
+//                    try {
+//                        createMicrophoneStream()
+//                        val audioConfig = AudioConfig.fromStreamInput(createMicrophoneStream())
+//
+//                        val reco = SpeechRecognizer(speechConfig, "ko-KR", audioConfig)
+//
+//                        val pronConfig = PronunciationAssessmentConfig(
+//                            word,
+//                            PronunciationAssessmentGradingSystem.HundredMark,
+//                            PronunciationAssessmentGranularity.Phoneme
+//                        )
+//
+//                        pronConfig.applyTo(reco)
+//
+//                        val recognizedWords = ArrayList<String>()
+//                        val pronWords = ArrayList<Word>()
+//                        val totalDurations = longArrayOf(0, 0)
+//                        val offsets = longArrayOf(0, 0)
+//                        val totalAccuracyScore = doubleArrayOf(0.0)
+//
+//                        reco.recognized.addEventListener { _, speechRecognitionResultEventArgs ->
+//                            val s = speechRecognitionResultEventArgs.result.text
+//                            Log.i(
+//                                logTag,
+//                                "Final result received: $s"
+//                            )
+//                            val pronResult =
+//                                PronunciationAssessmentResult.fromResult(speechRecognitionResultEventArgs.result)
+//                            Log.i(
+//                                logTag, "Accuracy score: ${pronResult.accuracyScore};" +
+//                                        "  pronunciation score: ${pronResult.pronunciationScore}," +
+//                                        " completeness score: ${pronResult.completenessScore}," +
+//                                        " fluency score: ${pronResult.fluencyScore}"
+//                            )
+//
+//                            for (w in pronResult.words) {
+//                                val wordResult = Word(
+//                                    w.word,
+//                                    w.errorType,
+//                                    w.accuracyScore,
+//                                    w.duration / 10000,
+//                                    w.offset / 10000
+//                                )
+//                                pronWords.add(wordResult)
+//                                recognizedWords.add(wordResult.word)
+//                                totalAccuracyScore[0] += wordResult.duration * wordResult.accuracyScore
+//                                totalDurations[0] += wordResult.duration
+//                                if (wordResult.errorType == "None") {
+//                                    totalDurations[1] += wordResult.duration + 10
+//                                }
+//                                offsets[1] = wordResult.offset + wordResult.duration + 10
+//                            }
+//                        }
+//
+//                        reco.sessionStopped.addEventListener { o, s ->
+//                            Log.i(logTag, "Session stopped.")
+//                            reco.stopContinuousRecognitionAsync()
+//
+//                            val accuracyScore = totalAccuracyScore[0] / totalDurations[0]
+//                            var fluencyScore = 0.0
+//                            if (recognizedWords.isNotEmpty()) {
+//                                offsets[0] = pronWords[0].offset
+//                                fluencyScore =
+//                                    totalDurations[1].toDouble() / (offsets[1] - offsets[0]) * 100
+//                            }
+//
+//                            val referenceWords =
+//                                word.lowercase(Locale.ROOT).split(" ").toTypedArray()
+//                            for (j in referenceWords.indices) {
+//                                referenceWords[j] =
+//                                    referenceWords[j].replace("^\\p{Punct}+|\\p{Punct}+$".toRegex(), "")
+//                            }
+//                            val diff = DiffUtils.diff(listOf(*referenceWords), recognizedWords, true)
+//
+//                            var currentIdx = 0
+//                            val finalWords = ArrayList<Word>()
+//                            val validWord = intArrayOf(0)
+//                            for (d in diff.deltas) {
+//                                when (d.type!!) {
+//                                    DeltaType.EQUAL -> {
+//                                        for (i in currentIdx until currentIdx + d.source.size()) {
+//                                            finalWords.add(pronWords[i])
+//                                        }
+//                                        currentIdx += d.target.size()
+//                                        validWord[0] += d.target.size()
+//                                    }
+//
+//                                    DeltaType.DELETE, DeltaType.CHANGE -> {
+//                                        for (w in d.source.lines) {
+//                                            finalWords.add(Word(w, "Omission"))
+//                                        }
+//                                    }
+//
+//                                    DeltaType.INSERT -> {
+//                                        for (i in currentIdx until currentIdx + d.target.size()) {
+//                                            val w = pronWords[i]
+//                                            w.errorType = "Insertion"
+//                                            finalWords.add(w)
+//                                        }
+//                                        currentIdx += d.target.size()
+//                                    }
+//                                }
+//                            }
+//
+//                            val completenessScore = validWord[0].toDouble() / referenceWords.size * 100
+//
+//                            appendTextLine(
+//                                "Paragraph accuracy score: $accuracyScore," +
+//                                        " completeness score: $completenessScore, fluency score: $fluencyScore\n",
+//                                true
+//                            )
+//                            for (w in finalWords) {
+//                                appendTextLine(
+//                                    " word: ${w.word}\taccuracy score: " +
+//                                            "${w.accuracyScore}\terror type: ${w.errorType}", false
+//                                )
+//                            }
+//
+//                            releaseMicrophoneStream()
+//                        }
+//
+//                        reco.startContinuousRecognitionAsync()
+//                    } catch (ex: Exception) {
+//                        Log.e(logTag, ex.message ?: "speech error")
+//                    }
+//                    setShowRecordUtil(true)
+//                },
+//                modifier = Modifier
+//                    .padding(0.5.dp, top = 30.dp)
+//                    .size(65.dp)
+//                    .background(color = Color(0xFF6F3BDD), shape = CircleShape)
+//                    .align(Alignment.CenterHorizontally)
+//            ) {
+//                Icon(
+//                    painter = painterResource(id = R.drawable.icon__mic_),
+//                    contentDescription = "mic",
+//                    tint=micColor
+//                )
+//            }
+//            if (showRecordUtil) {
+//                RecordUtil(word)
+//            }
+            RecordUtil(
+                assignedText = word,
+                modifierCenter = Modifier
                     .padding(0.5.dp, top = 30.dp)
                     .size(65.dp)
                     .background(color = Color(0xFF6F3BDD), shape = CircleShape)
-                    .align(Alignment.CenterHorizontally)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon__mic_),
-                    contentDescription = "mic",
-                    tint=micColor
-                )
-            }
+                 .align(Alignment.CenterHorizontally)
+            )
             Box(
                 modifier = Modifier
                     .padding(top = 20.dp)

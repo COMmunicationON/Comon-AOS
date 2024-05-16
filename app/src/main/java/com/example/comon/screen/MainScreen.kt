@@ -1,5 +1,6 @@
 package com.example.comon.screen
 
+import RequestRecordAudioPermission
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +43,8 @@ import com.example.comon.ui.theme.Purple40
 
 @Composable
 fun MainScreen(navController: NavHostController) {
+
+    RequestRecordAudioPermission()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route

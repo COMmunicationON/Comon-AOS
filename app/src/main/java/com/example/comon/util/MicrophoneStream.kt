@@ -1,12 +1,13 @@
-package com.microsoft.cognitiveservices.speech.samples.sdkdemo
+package com.example.comon.util
 
+import RequestRecordAudioPermission
 import android.Manifest
 import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.content.Context
-import androidx.core.app.ActivityCompat
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import com.microsoft.cognitiveservices.speech.audio.PullAudioInputStreamCallback
 import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
@@ -16,17 +17,14 @@ import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
  * to be consumed by the Speech SDK.
  * It configures the microphone with 16 kHz sample rate, 16 bit samples, mono (single-channel).
  */
+
 class MicrophoneStream(private val context: Context) : PullAudioInputStreamCallback() {
     private val SAMPLE_RATE = 16000
     private val format: AudioStreamFormat = AudioStreamFormat.getWaveFormatPCM(SAMPLE_RATE.toLong(), 16.toShort(), 1.toShort())
     private var recorder: AudioRecord? = null
 
     init {
-        initMic()
-    }
-
-    fun getFormat(): AudioStreamFormat {
-        return this.format
+        InitMic()
     }
 
     override fun read(bytes: ByteArray): Int {
@@ -43,7 +41,7 @@ class MicrophoneStream(private val context: Context) : PullAudioInputStreamCallb
         this.recorder = null
     }
 
-    private fun initMic() {
+    private fun InitMic() {
         val af = AudioFormat.Builder()
             .setSampleRate(SAMPLE_RATE)
             .setEncoding(AudioFormat.ENCODING_PCM_16BIT)

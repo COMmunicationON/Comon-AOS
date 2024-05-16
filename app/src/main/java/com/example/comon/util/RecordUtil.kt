@@ -1,7 +1,5 @@
 package com.example.comon.util
 
-import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
@@ -10,7 +8,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,31 +17,33 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.microsoft.cognitiveservices.speech.*
-import com.microsoft.cognitiveservices.speech.audio.AudioConfig
-import com.microsoft.cognitiveservices.speech.samples.sdkdemo.MicrophoneStream
-import java.io.*
-import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
+import com.example.comon.R
 import com.github.difflib.DiffUtils
 import com.github.difflib.patch.DeltaType
-import com.microsoft.cognitiveservices.speech.audio.AudioInputStream
+import com.microsoft.cognitiveservices.speech.*
+import com.microsoft.cognitiveservices.speech.audio.AudioConfig
+import java.io.*
+import java.util.*
 
 
 @Composable
 fun RecordUtil(
-    assignedText: String
+    assignedText: String,
+    modifierCenter: Modifier
 ) {
+
+    val (isEnabled, setIsEnabled) = remember { mutableStateOf(true) }
+    val micColor =  remember(isEnabled) {
+        if (isEnabled) Color(0xFF14FF00) else Color.Gray
+    }
+
     val context = LocalContext.current
 
-    var isButtonEnabled by remember { mutableStateOf(true) }
-    var recognizedText by remember { mutableStateOf("true") }
+    var recognizedText by remember { mutableStateOf("") }
     val speechSubscriptionKey = "8cca489f7031489985e9d0f8a704821b"
     val speechRegion = "koreacentral"
 
-    var microphoneStream: MicrophoneStream? = null
+    var microphoneStream: MicrophoneStream? by remember { mutableStateOf(null) }
 
     fun releaseMicrophoneStream() {
         microphoneStream?.close()
@@ -61,6 +60,8 @@ fun RecordUtil(
         recognizedText = if (erase) s else "${recognizedText}\n$s"
     }
 
+    val logTag = "recordUtil"
+
     // create config
     val speechConfig: SpeechConfig
 
@@ -72,13 +73,16 @@ fun RecordUtil(
 
     IconButton(
         onClick = {
-            //assessmentClick(speechSubscriptionKey, speechRegion, speechConfig)
-            val logTag = "recordUtil"
+            if (microphoneStream != null) {
+                releaseMicrophoneStream()
+                return@IconButton
+            }
 
-            releaseMicrophoneStream()
+            setIsEnabled(false)
 
             try {
                 createMicrophoneStream()
+
                 val audioConfig = AudioConfig.fromStreamInput(createMicrophoneStream())
 
                 val reco = SpeechRecognizer(speechConfig, "ko-KR", audioConfig)
@@ -113,21 +117,21 @@ fun RecordUtil(
                     )
 
                     for (w in pronResult.words) {
-                        val word = Word(
+                        val wordResult = Word(
                             w.word,
                             w.errorType,
                             w.accuracyScore,
                             w.duration / 10000,
                             w.offset / 10000
                         )
-                        pronWords.add(word)
-                        recognizedWords.add(word.word)
-                        totalAccuracyScore[0] += word.duration * word.accuracyScore
-                        totalDurations[0] += word.duration
-                        if (word.errorType == "None") {
-                            totalDurations[1] += word.duration + 10
+                        pronWords.add(wordResult)
+                        recognizedWords.add(wordResult.word)
+                        totalAccuracyScore[0] += wordResult.duration * wordResult.accuracyScore
+                        totalDurations[0] += wordResult.duration
+                        if (wordResult.errorType == "None") {
+                            totalDurations[1] += wordResult.duration + 10
                         }
-                        offsets[1] = word.offset + word.duration + 10
+                        offsets[1] = wordResult.offset + wordResult.duration + 10
                     }
                 }
 
@@ -137,7 +141,7 @@ fun RecordUtil(
 
                     val accuracyScore = totalAccuracyScore[0] / totalDurations[0]
                     var fluencyScore = 0.0
-                    if (!recognizedWords.isEmpty()) {
+                    if (recognizedWords.isNotEmpty()) {
                         offsets[0] = pronWords[0].offset
                         fluencyScore =
                             totalDurations[1].toDouble() / (offsets[1] - offsets[0]) * 100
@@ -196,56 +200,23 @@ fun RecordUtil(
                     }
 
                     releaseMicrophoneStream()
+                    setIsEnabled(true)
                 }
 
                 reco.startContinuousRecognitionAsync()
             } catch (ex: Exception) {
-                Log.e(logTag, ex.message ?: "")
+                Log.e(logTag, ex.message ?: "speech error")
             }
         },
-        modifier = Modifier
-            .padding(0.5.dp, top = 30.dp)
-            .size(65.dp)
-            .background(color = Color(0xFF6F3BDD), shape = CircleShape)
+        modifier = modifierCenter
     ) {
         Icon(
-            painter = painterResource(id = com.example.comon.R.drawable.icon__mic_),
-            contentDescription = "mic"
+            painter = painterResource(id = R.drawable.icon__mic_),
+            contentDescription = "mic",
+            tint=micColor
         )
     }
 }
-
-fun assessmentClick(
-    speechSubscriptionKey: String,
-    speechRegion: String,
-    speechConfig: SpeechConfig
-) {
-
-}
-
-
-//@Composable
-//fun copyAssetToCacheAndGetFilePath(filename: String): String {
-//    val context = LocalContext.current
-//    val cacheDir = context.cacheDir
-//    val cacheFile = File(cacheDir, filename)
-//    if (!cacheFile.exists()) {
-//        try {
-//            context.assets.open(filename).use { inputStream ->
-//                val size = inputStream.available()
-//                val buffer = ByteArray(size)
-//                inputStream.read(buffer)
-//                FileOutputStream(cacheFile).use { fos ->
-//                    fos.write(buffer)
-//                }
-//            }
-//        } catch (e: Exception) {
-//            throw RuntimeException(e)
-//        }
-//    }
-//    return cacheFile.path
-//}
-
 
 data class Word(
     val word: String,

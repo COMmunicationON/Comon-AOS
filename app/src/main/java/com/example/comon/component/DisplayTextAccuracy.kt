@@ -12,25 +12,25 @@ import androidx.compose.ui.unit.sp
 import com.example.comon.ui.theme.AppColors
 
 @Composable
-fun DisplayTextAccuracy(word: List<String>, accuracies: List<Double>) {
+fun DisplayTextAccuracy(word: List<String>, accuracies: List<Int>) {
     Row {
-        Text("/ ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 25.sp)
+        Text("/ ", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 22.sp)
         for (i in word.indices) {
-            Text(word[i], color = getColor(accuracies[i]), fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(word[i], color = getColor(accuracies[i]), fontWeight = FontWeight.Bold, fontSize = 17.sp)
             if (i < word.size - 1) {
                 Spacer(modifier = Modifier.width(4.dp))
             }
         }
-        Text(" /", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 25.sp)
+        Text(" /", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 22.sp)
     }
 }
 
 
 @Composable
-private fun getColor(accuracy: Double): Color {
+private fun getColor(accuracy: Int): Color {
     return when {
-        accuracy < 0.6 -> AppColors.mRed
-        accuracy < 0.8 -> AppColors.mYellow
+        accuracy < 60 -> AppColors.mRed
+        accuracy < 80 -> AppColors.mYellow
         else -> AppColors.mGreen
     }
 }
@@ -40,6 +40,6 @@ private fun getColor(accuracy: Double): Color {
 @Composable
 fun PreviewWordDisplay() {
     val word = listOf("ㅅ", "ㅜ", "ㅂ", "ㅏ", "ㄱ")
-    val accuracies = listOf(0.9, 0.7, 0.8, 0.6, 0.4)
+    val accuracies = listOf(90,70,80,60,40)
     DisplayTextAccuracy(word, accuracies)
 }

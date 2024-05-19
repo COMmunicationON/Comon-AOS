@@ -7,10 +7,8 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.content.Context
-import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import com.microsoft.cognitiveservices.speech.audio.PullAudioInputStreamCallback
-import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
 
 /**
  * MicrophoneStream exposes the Android Microphone as an PullAudioInputStreamCallback
@@ -20,7 +18,6 @@ import com.microsoft.cognitiveservices.speech.audio.AudioStreamFormat
 
 class MicrophoneStream(private val context: Context) : PullAudioInputStreamCallback() {
     private val SAMPLE_RATE = 16000
-    private val format: AudioStreamFormat = AudioStreamFormat.getWaveFormatPCM(SAMPLE_RATE.toLong(), 16.toShort(), 1.toShort())
     private var recorder: AudioRecord? = null
 
     init {
@@ -42,6 +39,25 @@ class MicrophoneStream(private val context: Context) : PullAudioInputStreamCallb
     }
 
     private fun InitMic() {
+        val af = AudioFormat.Builder()
+            .setSampleRate(SAMPLE_RATE)
+            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+            .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+            .build()
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+
+        recorder = AudioRecord.Builder()
+            .setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            .setAudioFormat(af)
+            .build()
+
+        recorder?.startRecording()
+    }
+
+    private fun InitCamera() {
         val af = AudioFormat.Builder()
             .setSampleRate(SAMPLE_RATE)
             .setEncoding(AudioFormat.ENCODING_PCM_16BIT)

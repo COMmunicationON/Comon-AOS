@@ -6,7 +6,7 @@ coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
-lifecycleRuntimeKtx = "2.7.0"
+lifecycleRuntimeKtx = "2.8.0"
 activityCompose = "1.9.0"
 coil = "2.5.0"
 composeBom = "2024.05.00"
@@ -16,7 +16,7 @@ ok2CurlInterceptor = "0.7.0"
 okhttp3 = "4.12.0"
 kotlin-coroutines = "1.7.3"
 kotlin-serialization = "1.6.2"
-lifecycleCompose="2.7.0"
+lifecycleCompose="2.8.0"
 composeRuntime="1.6.7"
 ossLicenses = "17.0.1"
 ossLicensesPlugin = "0.10.6"
@@ -25,7 +25,7 @@ material="1.6.7"
 
 speechStudio="1.37.0"
 diffUtil="4.12"
-
+googleTts="9.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -70,8 +70,10 @@ navigation = { group =  "androidx.navigation", name="navigation-compose" , versi
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
 oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "ossLicenses" }
 material = {group="androidx.compose.material",name="material", version.ref = "material" }
-speechstudio= {group = "com.microsoft.cognitiveservices.speech", name = "client-sdk", version = "1.37.0" }
-diffutil= {group = "io.github.java-diff-utils", name = "java-diff-utils", version = "4.12" }
+speechstudio= {group = "com.microsoft.cognitiveservices.speech", name = "client-sdk", version.ref = "speechStudio" }
+diffutil= {group = "io.github.java-diff-utils", name = "java-diff-utils", version.ref = "diffUtil" }
+
+googleTts={group="'com.google.android.gms",name="play-services-speech", version.ref ="googleTts"}
 
 [bundles]
 

@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -36,7 +37,8 @@ fun MenuItem(
         Text(text = title, color = Color(0x99171717), fontSize = 15.sp)
         Image(
             imageVector = ImageVector.vectorResource(R.drawable.chevron_left),
-            contentDescription = "Decoration"
+            contentDescription = "Decoration",
+            modifier = Modifier.rotate(180f)
         )
     }
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -58,6 +60,7 @@ fun HomeScreen(navController : NavController) {
 
     Box(
         modifier = Modifier
+            .statusBarsPadding()
             .fillMaxSize()
             .background(color = Color(0xFFFDFDFD))
     ) {
@@ -131,7 +134,7 @@ fun HomeScreen(navController : NavController) {
                             color = Color(0xFF6F3BDD),
                             shape = RoundedCornerShape(size = 45.80153.dp)
                         ),
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(id = R.drawable.temp_profile_img),
                     contentDescription = "image description",
                     contentScale = ContentScale.FillBounds,
                 )
@@ -168,29 +171,32 @@ fun HomeScreen(navController : NavController) {
                 {
                     Row(
                         modifier = Modifier
+                            .fillMaxWidth()
                             .align(Alignment.Center)
+                            .padding(2.dp),
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
                             text = username,
                             fontWeight = FontWeight(600),
-                            fontSize = 11.sp,
+                            fontSize = 9.sp,
                             color = Color(0xFF6F3BDD),
                         )
                         Text(
                             text = "님은",
                             fontWeight = FontWeight(600),
-                            fontSize = 11.sp,
+                            fontSize = 9.sp,
                         )
                         Text(
                             text = " '$weakness' 발음",
                             fontWeight = FontWeight(600),
-                            fontSize = 11.sp,
+                            fontSize = 9.sp,
                             color = Color(0xFF6F3BDD),
                         )
                         Text(
                             text = "이 취약하시군요!",
                             fontWeight = FontWeight(600),
-                            fontSize = 11.sp
+                            fontSize = 9.sp
                         )
                     }
                 }
@@ -212,8 +218,8 @@ fun HomeScreen(navController : NavController) {
                     Text(
                         text = "학습하기",
                         style = TextStyle(
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight(600),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight(300),
                             textAlign = TextAlign.Center
                         )
                     )

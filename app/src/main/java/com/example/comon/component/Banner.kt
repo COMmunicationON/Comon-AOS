@@ -52,17 +52,17 @@ fun Banner(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "GDSC: $part",
+                text = "구음장애 복지 재단",
                 fontSize = 10.sp,
                 color = Color(0xFF007B31),
                 fontWeight = FontWeight.Medium
             )
         }
-        Image(
-            painter = painterResource(id = R.drawable.chevron_left),
-            contentDescription = "Konkuk",
-            modifier = Modifier.size(52.dp)
-        )
+//        Image(
+//            painter = painterResource(id = R.drawable.chevron_left),
+//            contentDescription = "Konkuk",
+//            modifier = Modifier.size(52.dp)
+//        )
     }
 }
 

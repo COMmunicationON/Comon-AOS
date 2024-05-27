@@ -1,5 +1,11 @@
 package com.example.comon.screen
 
+import CameraPreview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.VideoCapture
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,34 +19,43 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.comon.DevicePreview
 import com.example.comon.R
 import com.example.comon.ui.theme.ComonTheme
+import com.google.common.util.concurrent.ListenableFuture
 
 @Composable
 fun SettingFaceScreen(
     navController: NavController,
-    path: String
+    path: String,
+    level: String
 ) {
+    val localCont = LocalContext.current
     Box(
         modifier =
         Modifier
@@ -50,7 +65,9 @@ fun SettingFaceScreen(
     {
         //Text(text = path, color = Color.Black) //console
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
         )
         {
             Icon(
@@ -107,13 +124,34 @@ fun SettingFaceScreen(
                     .align(Alignment.CenterHorizontally)
             )
             {
+                val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
+                    remember { ProcessCameraProvider.getInstance(localCont) }
+                val lifecycleOwner = LocalLifecycleOwner.current
 
+                val videoCaptureExecutor = remember { ContextCompat.getMainExecutor(localCont) }
+
+                val videoCapture = remember {
+                    val recorder = Recorder.Builder()
+                        .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+                        .build()
+                    VideoCapture.withOutput(recorder)
+                }
+
+                CameraPreview(
+                    videoCaptureExecutor = videoCaptureExecutor,
+                    cameraProviderFuture = cameraProviderFuture,
+                    videoCapture = videoCapture,
+                    lifecycleOwner =lifecycleOwner
+                )
             }
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate("TRAINING/$path/$level")
+                },
                 border = BorderStroke(2.dp, Color(0xFF6F3BDD)),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-                    .padding(top=50.dp),
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 50.dp, bottom = 30.dp),
                 colors = ButtonColors(Color.White,Color.White,Color.White,Color.White)
             ) {
                 Text(
@@ -137,6 +175,6 @@ fun SettingFaceScreen(
 fun SettingFaceScreenPreview() {
     val testNav = rememberNavController()
     ComonTheme {
-        SettingFaceScreen(testNav, "word")
+        SettingFaceScreen(testNav, "word", "1")
     }
 }

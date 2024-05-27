@@ -25,7 +25,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -36,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +54,7 @@ import com.example.comon.component.Numbering
 import com.example.comon.model.TrainingModel
 import com.example.comon.ui.theme.ComonTheme
 import com.example.comon.util.RecordUtil
+import com.example.comon.util.TextToSpeechHelper
 import com.example.comon.util.TrainingResult
 
 @Composable
@@ -73,7 +77,16 @@ fun TrainingScreen(
 
     var openDialog by remember { mutableStateOf(false) }
     var openBackDialog by remember { mutableStateOf(false) }
-    val tempResultsState = remember { mutableListOf<TrainingResult>() }
+    var tempResultsState = remember { mutableListOf<TrainingResult>() }
+
+    val context = LocalContext.current
+    val textToSpeechHelper = remember { TextToSpeechHelper(context) }
+
+    DisposableEffect(textToSpeechHelper) {
+        onDispose {
+            textToSpeechHelper.shutdown()
+        }
+    }
 
     // courseLevel을 증가시키는 함수 정의
     val onCourseLevelChange: (Int) -> Unit = {
@@ -94,14 +107,20 @@ fun TrainingScreen(
         navController.navigate("HOME") {
             popUpTo("first") { inclusive = true }
         }
+    }
 
+    val onDismiss: () -> Unit = {
+        openBackDialog = false
     }
 
     val addResults: (TrainingResult) -> Unit = {
         tempResultsState.add(it)
+        Log.d("tempResult",tempResultsState.toString())
     }
 
-
+    LaunchedEffect(tempResultsState) {
+        //Log.d("tempResult",tempResultsState.toString())
+    }
 
     LaunchedEffect(Unit) {
         trainingString = null.toString()
@@ -137,7 +156,7 @@ fun TrainingScreen(
         }
     )
 
-    BackDialog(openBackDialog, onClose = onClose)
+    BackDialog(openBackDialog, onClose = onClose, onDismiss = onDismiss)
     FeedbackScreen(openDialog, onDialogChange, tempResultsState)
     if (!openDialog) {
         Box(
@@ -265,6 +284,9 @@ fun TrainingScreen(
                                 .width(250.dp)
                                 .height(230.dp)
                                 .padding(20.dp)
+                                .clickable {
+                                    textToSpeechHelper.speak(trainingString)
+                                }
                         )
                     }
 
@@ -287,7 +309,7 @@ fun TrainingScreen(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .fillMaxWidth()
-                        .padding(10.dp,20.dp,10.dp,15.dp),
+                        .padding(10.dp, 20.dp, 10.dp, 15.dp),
                     text = trainingString,
                     letterSpacing = 10.sp,
                     style = TextStyle(
@@ -304,11 +326,11 @@ fun TrainingScreen(
 }
 
 @Composable
-fun BackDialog(openBackDialog: Boolean, onClose: () -> Unit) {
+fun BackDialog(openBackDialog: Boolean, onClose: () -> Unit, onDismiss: ()->Unit) {
     if (openBackDialog) {
         AlertDialog(
             modifier = Modifier,
-            onDismissRequest = onClose,
+            onDismissRequest = onDismiss,
             title = { Text("잠깐!") },
             text = {
                 Text(

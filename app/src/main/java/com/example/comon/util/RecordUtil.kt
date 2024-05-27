@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +60,7 @@ fun RecordUtil(
     onDialogChange : (Boolean) -> Unit,
     addResults : (TrainingResult) -> Unit
 ) {
-    val tempResultsState = remember { mutableListOf<TrainingResult>() }
+    val tempResultsState = rememberSaveable { mutableListOf<TrainingResult>() }
 
     val (isEnabled, setIsEnabled) = remember { mutableStateOf(true) }
     val micColor =  remember(isEnabled) {
@@ -256,15 +257,14 @@ fun RecordUtil(
                     }
 
                     //열개 한번에 post 해 줄 데이터 리스트 쌓기
-                    if(path== "sentence"){
+                    if(path == "sentence"){
                         val tempResult = TrainingResult(text=assignedText, each=tempWord, eachAccuracy = tempWordAccuracy, accuracyScore = totalAccurScore, pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore)
                         addResults(tempResult)
                         //tempResultsState.add(tempResult)
                         Log.i("로그",tempResultsState.toString())
                     }
-                    else
-                    {
-                        val tempResult = TrainingResult(text=assignedText, each = originPhoneme, eachAccuracy = tempPhonemeAccuracy,accuracyScore = totalAccurScore.toInt(), pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore)
+                    else{
+                        val tempResult = TrainingResult(text=assignedText, each = originPhoneme, eachAccuracy = tempPhonemeAccuracy,accuracyScore = totalAccurScore, pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore)
                         addResults(tempResult)
                         //tempResultsState.add(tempResult)
                         Log.i("로그",tempResultsState.toString())
@@ -327,9 +327,9 @@ data class Word(
 data class TrainingResult(
     val text: String? = "",
     val each: List<String>? = listOf(""),
-    val eachAccuracy: List<Int>? = null,
+    val eachAccuracy: List<Int>?= each?.let { List(it.size) { 0 } },
     val accuracyScore: Int? = 0,
-    val pronunciationScore: Int? =0 ,
+    val pronunciationScore: Int? =0,
     val completenessScore: Int?=0,
     val fluencyScore: Int?=0
 )

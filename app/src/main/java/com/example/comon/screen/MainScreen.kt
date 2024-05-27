@@ -137,6 +137,7 @@ sealed class BottomNavItem(
     object Difficulty : BottomNavItem("난이도","DIFFICULTY",null, false)
     object Training : BottomNavItem("훈련","TRAINING",null, false)
     object Feedback : BottomNavItem("피드백","FEEDBACK",null, false)
+    object SettingFace : BottomNavItem("얼굴 설정","SETTING_FACE",null, false)
 
 }
 
@@ -150,7 +151,7 @@ fun NavigationGraph(navController: NavHostController) {
             MyPageScreen()
         }
         composable(BottomNavItem.Statics.screenRoute) {
-            //AnalysisScreen()
+            StaticsScreen()
         }
         composable(BottomNavItem.Settings.screenRoute) {
             //SettingsScreen()
@@ -165,6 +166,12 @@ fun NavigationGraph(navController: NavHostController) {
             val path = it.arguments?.getString("path") ?: ""
             val level = it.arguments?.getString("level") ?: ""
             TrainingScreen(navController,path = path, difficulty = level)
+        }
+        composable(BottomNavItem.SettingFace.screenRoute+"/{path}/{level}") {
+            //val difficulty = navController.previousBackStackEntry?.savedStateHandle?.get<String>("difficulty")
+            val path = it.arguments?.getString("path") ?: ""
+            val level = it.arguments?.getString("level") ?: ""
+            SettingFaceScreen(navController,path = path, level = level)
         }
         composable(BottomNavItem.Feedback.screenRoute+"/{tempResultsState}") {
             //val difficulty = navController.previousBackStackEntry?.savedStateHandle?.get<String>("difficulty")

@@ -22,7 +22,8 @@ class TrainingViewModel : ViewModel() {
     fun fetchTrainingData(trainingModel: TrainingModel) {
         val api = TrainingDataService.getInstance()
 
-        api.postTrainingData(trainingModel).enqueue(object : Callback<TrainingBackendResponse> {
+        //api.getTrainingData(trainingModel).enqueue(object : Callback<TrainingBackendResponse> {
+        api.getTrainingData(trainingModel.type ?: "word", trainingModel.level?: 1).enqueue(object : Callback<TrainingBackendResponse> {
             override fun onResponse(
                 call: Call<TrainingBackendResponse>,
                 response: Response<TrainingBackendResponse>

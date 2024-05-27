@@ -1,5 +1,6 @@
 package com.example.comon.screen
 
+import androidx.camera.core.processing.SurfaceProcessorNode.In
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.comon.DevicePreview
 import com.example.comon.R
@@ -104,127 +106,65 @@ fun DifficultyScreen(
                     .align(Alignment.CenterHorizontally),
                 verticalArrangement = Arrangement.Center,
             ) {
-                Button(
-                    onClick = {
-                        val level = 1
-                        navController.navigate("TRAINING/$path/$level")
-                    },
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .shadow(
-                            elevation = 10.dp,
-                            spotColor = Color.LightGray,
-                            ambientColor = Color(0x0A000000),
-                            shape = RoundedCornerShape(size = 10.dp)
-                        ),
-                    colors = ButtonDefaults.buttonColors(Color(0xFFFFFFFF)),
-                    shape = RoundedCornerShape(size = 20.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(160.dp)
-                            .height(110.dp)
-                            .background(
-                                color = Color(0xFFFFFFFF),
-                                shape = RoundedCornerShape(size = 18.dp)
-                            )
-                    ) {
-                        Text(
-                            text = "쉬움",
-                            modifier = Modifier.padding(20.dp),
-                            style = TextStyle(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight(600),
-                                color = Color(0xFF000000),
-                                textAlign = TextAlign.Center,
-                            )
-                        )
-                    }
-                }
-
-                Button(
-                    onClick = {
-                        //navController.currentBackStackEntry?.savedStateHandle?.set(key = "difficulty", value = 2)
-                        val level = 2
-                        navController.navigate("TRAINING/$path/$level")
-                    },
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .shadow(
-                            elevation = 10.dp,
-                            spotColor = Color.LightGray,
-                            ambientColor = Color(0x0A000000),
-                            shape = RoundedCornerShape(size = 10.dp)
-                        ),
-                    colors = ButtonDefaults.buttonColors(Color(0xFFFFFFFF)),
-                    shape = RoundedCornerShape(size = 20.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(160.dp)
-                            .height(110.dp)
-                            .background(
-                                color = Color(0xFFFFFFFF),
-                                shape = RoundedCornerShape(size = 18.dp)
-                            )
-                    ) {
-                        Text(
-                            text = "중간",
-                            modifier = Modifier.padding(20.dp),
-                            style = TextStyle(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight(600),
-                                color = Color(0xFF000000),
-                                textAlign = TextAlign.Center,
-                            )
-                        )
-                    }
-                }
-                Button(
-                    onClick = {
-                        //navController.currentBackStackEntry?.savedStateHandle?.set(key = "difficulty", value = 3)
-                        val level = 3
-                        navController.navigate("TRAINING/$path/$level")
-                    },
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .shadow(
-                            elevation = 10.dp,
-                            spotColor = Color.LightGray,
-                            ambientColor = Color(0x0A000000),
-                            shape = RoundedCornerShape(size = 10.dp)
-                        ),
-                    colors = ButtonDefaults.buttonColors(Color(0xFFFFFFFF)),
-                    shape = RoundedCornerShape(size = 20.dp),
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(160.dp)
-                            .height(110.dp)
-                            .background(
-                                color = Color(0xFFFFFFFF),
-                                shape = RoundedCornerShape(size = 18.dp)
-                            )
-                    ) {
-                        Text(
-                            text = "어려움",
-                            modifier = Modifier.padding(20.dp),
-                            style = TextStyle(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight(600),
-                                color = Color(0xFF000000),
-                                textAlign = TextAlign.Center,
-                            )
-                        )
-                    }
-                }
+                DifficultyComponent(navController,path,1)
+                DifficultyComponent(navController,path,2)
+                DifficultyComponent(navController,path,3)
             }
 
         }
     }
+}
+
+@Composable
+fun DifficultyComponent(
+    navController: NavController,
+    path: String,
+    level: Int
+)
+{
+    Button(
+        onClick = {
+            navController.navigate("SETTING_FACE/$path/$level")
+        },
+        modifier = Modifier
+            .padding(10.dp)
+            .shadow(
+                elevation = 10.dp,
+                spotColor = Color.LightGray,
+                ambientColor = Color(0x0A000000),
+                shape = RoundedCornerShape(size = 10.dp)
+            ),
+        colors = ButtonDefaults.buttonColors(Color(0xFFFFFFFF)),
+        shape = RoundedCornerShape(size = 20.dp),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(160.dp)
+                .height(110.dp)
+                .background(
+                    color = Color(0xFFFFFFFF),
+                    shape = RoundedCornerShape(size = 18.dp)
+                )
+        ) {
+            Text(
+                text = when(level) {
+                    1 -> "쉬움"
+                    2 -> "중간"
+                    3 -> "어려움"
+                    else -> "Unknown Level"
+                },
+                modifier = Modifier.padding(20.dp),
+                style = TextStyle(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight(600),
+                    color = Color(0xFF000000),
+                    textAlign = TextAlign.Center,
+                )
+            )
+        }
+    }
+
 }
 
 @DevicePreview

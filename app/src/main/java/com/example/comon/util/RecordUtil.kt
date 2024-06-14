@@ -1,7 +1,17 @@
 package com.example.comon.util
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Environment
 import android.util.Log
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Quality
+import androidx.camera.video.QualitySelector
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -29,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import com.example.comon.R
 import com.example.comon.screen.FeedbackScreen
@@ -42,6 +53,9 @@ import com.microsoft.cognitiveservices.speech.PropertyId
 import com.microsoft.cognitiveservices.speech.SpeechConfig
 import com.microsoft.cognitiveservices.speech.SpeechRecognizer
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 
@@ -54,11 +68,13 @@ fun RecordUtil(
     originPhoneme: List<String>,
     modifier: Modifier,
     path: String,
+    difficulty: String,
     courseLevel : Int, // courseLevel 전달
     onCourseLevelChange : (Int) -> Unit, // courseLevel 변경 이벤트 핸들러 전달
     openDialog: Boolean,
     onDialogChange : (Boolean) -> Unit,
-    addResults : (TrainingResult) -> Unit
+    addResults : (TrainingResult) -> Unit,
+    onResult : (String) -> Unit
 ) {
     val tempResultsState = rememberSaveable { mutableListOf<TrainingResult>() }
 
@@ -93,10 +109,44 @@ fun RecordUtil(
         recognizedText = if (erase) s else "${recognizedText}\n$s"
     }
 
+    val videoCapture = remember {
+        val recorder = Recorder.Builder()
+            .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+            .build()
+        VideoCapture.withOutput(recorder)
+    }
+
+    var recording: Recording? by remember { mutableStateOf(null) }
+    var result: String by remember { mutableStateOf("") }
+    val videoCaptureExecutor = remember { ContextCompat.getMainExecutor(context) }
+
     val logTag = "recordUtil"
 
     IconButton(
         onClick = {
+
+            if (recording != null) {
+                recording?.stop()
+                recording = null
+            } else {
+                val videoFile = createTempFile(context)
+                val outputOptions = FileOutputOptions.Builder(videoFile).build()
+                recording = videoCapture.output
+                    .prepareRecording(context, outputOptions)
+                    .start(videoCaptureExecutor) { event ->
+                        when (event) {
+                            is VideoRecordEvent.Finalize -> {
+                                // 녹화 완료됨
+                                recording?.close()
+                                result = videoFile.absolutePath
+                                Log.d("recordSang",result)
+                                onResult(result)
+                            }
+                        }
+                    }
+            }
+
+
             if (microphoneStream != null) {
                 releaseMicrophoneStream()
                 return@IconButton
@@ -120,6 +170,7 @@ fun RecordUtil(
                 )
 
                 pronConfig.applyTo(reco)
+
 
                 val recognizedWords = ArrayList<String>()
                 val pronWords = ArrayList<Word>()
@@ -258,13 +309,13 @@ fun RecordUtil(
 
                     //열개 한번에 post 해 줄 데이터 리스트 쌓기
                     if(path == "sentence"){
-                        val tempResult = TrainingResult(text=assignedText, each=tempWord, eachAccuracy = tempWordAccuracy, accuracyScore = totalAccurScore, pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore)
+                        val tempResult = TrainingResult(text=assignedText, each=tempWord, eachAccuracy = tempWordAccuracy, accuracyScore = totalAccurScore, pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore, path = path,difficulty=difficulty)
                         addResults(tempResult)
                         //tempResultsState.add(tempResult)
                         Log.i("로그",tempResultsState.toString())
                     }
                     else{
-                        val tempResult = TrainingResult(text=assignedText, each = originPhoneme, eachAccuracy = tempPhonemeAccuracy,accuracyScore = totalAccurScore, pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore)
+                        val tempResult = TrainingResult(text=assignedText, each = originPhoneme, eachAccuracy = tempPhonemeAccuracy,accuracyScore = totalAccurScore, pronunciationScore = totalPronScore, completenessScore = totalCompletenessScore, fluencyScore = totalFluencyScore, path = path,difficulty=difficulty)
                         addResults(tempResult)
                         //tempResultsState.add(tempResult)
                         Log.i("로그",tempResultsState.toString())
@@ -331,9 +382,17 @@ data class TrainingResult(
     val accuracyScore: Int? = 0,
     val pronunciationScore: Int? =0,
     val completenessScore: Int?=0,
-    val fluencyScore: Int?=0
+    val fluencyScore: Int?=0,
+    val path: String,
+    val difficulty: String
 )
 
+fun createTempFile(context: Context): File {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val videoFileName = "VIDEO_$timeStamp"
+    val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+    return File.createTempFile(videoFileName, ".mp4", storageDir)
+}
 
 
 //@DevicePreview
@@ -345,3 +404,4 @@ data class TrainingResult(
 //        RecordUtil(navController = nav, assignedText = "수박", modifier = Modifier)
 //    }
 //}
+

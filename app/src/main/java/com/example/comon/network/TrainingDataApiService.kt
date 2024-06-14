@@ -1,8 +1,9 @@
 package com.example.comon.network
 
 import android.annotation.SuppressLint
+import com.example.comon.model.RecommendBackendResponse
 import com.example.comon.model.TrainingBackendResponse
-import com.example.comon.model.TrainingModel
+import com.example.comon.model.TrainingResultRequest
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -21,11 +22,17 @@ interface TrainingDataService {
         @Query("level") level: Int,
         ): Call<TrainingBackendResponse>
 
+    @GET("/training/weakTraining")
+    fun getRecommendData(): Call<RecommendBackendResponse>
+
+    @POST("/user/saveScores")
+    suspend fun sendTrainingResults(@Body request: TrainingResultRequest): Call<Void>
+
     companion object {
         private const val CONNECT_TIMEOUT = 30L // in seconds
         private const val READ_TIMEOUT = 30L // in seconds
         private const val BASE_URL =
-            "http://ec2-52-79-228-170.ap-northeast-2.compute.amazonaws.com:6000"
+            "http://15.164.125.250:4000"
 
         @SuppressLint("SuspiciousIndentation")
         fun getInstance(): TrainingDataService{

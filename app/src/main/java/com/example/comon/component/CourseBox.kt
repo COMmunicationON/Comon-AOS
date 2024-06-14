@@ -33,6 +33,7 @@ fun CourseBox(
         "단어" -> "word"
         "음절" -> "syllable"
         "문장" -> "sentence"
+        "오답노트" -> "Note"
         else -> {"none"}
     }
 
@@ -48,7 +49,13 @@ fun CourseBox(
         colors = ButtonDefaults.buttonColors(Color(0xFFFDF7FF)),
         onClick = {
             //navController.currentBackStackEntry?.savedStateHandle?.set(key = "path", value = department)
-            navController.navigate("DIFFICULTY/$type")
+            if(type=="Note")
+            {
+                navController.navigate("NOTE")
+            }
+            else {
+                navController.navigate("DIFFICULTY/$type")
+            }
                   },
         shape = RoundedCornerShape(size = 18.dp),
         contentPadding = PaddingValues(0.dp)
@@ -72,7 +79,6 @@ fun CourseBox(
                     fontSize = 20.sp,
                     fontWeight = FontWeight(600),
                     color = Color(0xFF000000),
-                    textAlign = TextAlign.Center,
                 )
             )
         }

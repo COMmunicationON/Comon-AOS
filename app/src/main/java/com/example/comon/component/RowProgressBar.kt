@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -29,8 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.comon.ui.theme.ComonTheme
 import com.example.comon.ui.theme.Purple40
 import com.example.comon.ui.theme.Purple80
@@ -39,7 +42,8 @@ import com.example.comon.ui.theme.PurpleGrey80
 
 @Composable
 fun RowProgressBar(
-    progressCount: Int
+    progressCount: Int,
+    correctCount: Int
 ) {
 
     val context = LocalContext.current
@@ -75,17 +79,21 @@ fun RowProgressBar(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 100.dp, start = 30.dp, end = 30.dp)
+            .padding(top = 30.dp, start = 30.dp, end = 30.dp)
     ) {
         // for the text above the progressBar
         Row(
             modifier = Modifier
-                .widthIn(min = 30.dp)
+                .widthIn(min = 50.dp)
+                .padding(start = 5.dp)
                 .fillMaxWidth(size),
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = "$progress",
+                modifier = Modifier,
+                text = "$correctCount",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color.Black)
         }
         // Progress Bar
@@ -156,6 +164,6 @@ fun RowProgressBar(
 fun RowProgressBarPreview()
 {
     ComonTheme {
-        RowProgressBar(7)
+        RowProgressBar(3, 594)
     }
 }

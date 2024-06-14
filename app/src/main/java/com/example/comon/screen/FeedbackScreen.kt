@@ -1,7 +1,11 @@
 package com.example.comon.screen
 
 import DisplayTextAccuracy
+import android.app.ActionBar
+import android.media.browse.MediaBrowser
+import android.net.Uri
 import android.util.Log
+import android.widget.VideoView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,15 +27,27 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.navigation.compose.rememberNavController
 import com.example.comon.DevicePreview
 import com.example.comon.R
@@ -45,11 +61,11 @@ fun FeedbackScreen(
     openDialog: Boolean,
     onDialogChange: (Boolean) -> Unit,
     entireResult: MutableList<TrainingResult>,
-    //tempVideoUrl: String
+    tempVideoUrl: String
 ) {
 
-    Log.i("entire", entireResult.toString())
-
+    Log.i("entire", tempVideoUrl.toString())
+    // 동영상 재생 여부 상태 변수 추가
     if (openDialog) {
         val scrollState = rememberScrollState()
         val lastResult = entireResult.last()
@@ -278,7 +294,7 @@ fun FeedbackScreen(
 
                 )
                 {
-
+                        ExoPlayerVideoPlayer(videoUri = tempVideoUrl)
                 }
                 Button(
                     onClick = { onDialogChange(false) },
@@ -305,6 +321,37 @@ fun FeedbackScreen(
 
 
 }
+
+@Composable
+fun ExoPlayerVideoPlayer(videoUri: String) {
+    val context = LocalContext.current
+    val exoplayer = remember {
+        ExoPlayer.Builder(context)
+            .build()
+            .apply {
+                setMediaItem(MediaItem.fromUri(videoUri))
+                prepare()
+                play()
+            }
+    }
+
+    AndroidView(
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                player = exoplayer
+                layoutParams =
+                    ActionBar.LayoutParams(ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.MATCH_PARENT)
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
+    DisposableEffect(Unit) {
+        onDispose {
+            exoplayer.release()
+        }
+    }
+}
+
 
 @DevicePreview
 @Composable

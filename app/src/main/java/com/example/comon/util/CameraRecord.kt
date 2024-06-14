@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LifecycleStartEffect
 import com.example.comon.R
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.File
@@ -110,19 +111,20 @@ fun CameraPreview(
     videoCaptureExecutor: Executor,
     cameraProviderFuture: ListenableFuture<ProcessCameraProvider>,
     videoCapture: VideoCapture<Recorder>,
-    lifecycleOwner: LifecycleOwner,
-    modifier: Modifier = Modifier,
+    lifecycleOwner: LifecycleOwner
 ) {
     val context = LocalContext.current
 
     val previewView = remember {
         PreviewView(context).apply {
-            var implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
             scaleType = PreviewView.ScaleType.FILL_START
         }
     }
 
-    val cameraProvider = cameraProviderFuture.get()
+    val cameraProvider = remember {
+        cameraProviderFuture.get()
+    }
 
     val previewUseCase = remember {
         Preview.Builder()
@@ -135,8 +137,7 @@ fun CameraPreview(
         CameraSelector.DEFAULT_FRONT_CAMERA
     }
 
-    LaunchedEffect(previewUseCase, videoCapture, cameraSelector) {
-        try {
+    LifecycleStartEffect(previewUseCase, videoCapture, cameraSelector, lifecycleOwner) {
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(
                 lifecycleOwner,
@@ -144,9 +145,7 @@ fun CameraPreview(
                 previewUseCase,
                 videoCapture
             )
-        } catch (e: Exception) {
-            // 예외 처리
-        }
+        onStopOrDispose {  }
     }
 
     AndroidView(
@@ -162,3 +161,4 @@ fun createTempFile(context: Context): File {
     val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
     return File.createTempFile(videoFileName, ".mp4", storageDir)
 }
+

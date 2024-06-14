@@ -1,6 +1,7 @@
 package com.example.comon.screen
 
 import CameraPreview
+import androidx.camera.core.ImageCapture
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
@@ -55,7 +56,21 @@ fun SettingFaceScreen(
     path: String,
     level: String
 ) {
-    val localCont = LocalContext.current
+    val context = LocalContext.current
+
+    val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
+        remember { ProcessCameraProvider.getInstance(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    val videoCaptureExecutor = remember { ContextCompat.getMainExecutor(context) }
+
+    val videoCapture = remember {
+        val recorder = Recorder.Builder()
+            .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
+            .build()
+        VideoCapture.withOutput(recorder)
+    }
+
     Box(
         modifier =
         Modifier
@@ -124,19 +139,6 @@ fun SettingFaceScreen(
                     .align(Alignment.CenterHorizontally)
             )
             {
-                val cameraProviderFuture: ListenableFuture<ProcessCameraProvider> =
-                    remember { ProcessCameraProvider.getInstance(localCont) }
-                val lifecycleOwner = LocalLifecycleOwner.current
-
-                val videoCaptureExecutor = remember { ContextCompat.getMainExecutor(localCont) }
-
-                val videoCapture = remember {
-                    val recorder = Recorder.Builder()
-                        .setQualitySelector(QualitySelector.from(Quality.HIGHEST))
-                        .build()
-                    VideoCapture.withOutput(recorder)
-                }
-
                 CameraPreview(
                     videoCaptureExecutor = videoCaptureExecutor,
                     cameraProviderFuture = cameraProviderFuture,

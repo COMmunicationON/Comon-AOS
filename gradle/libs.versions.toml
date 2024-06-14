@@ -29,6 +29,12 @@ diffUtil="4.12"
 camerax_version ='1.3.3'
 lifecycleRuntimeCompose='2.8.0'
 
+exoplayer_version='1.3.1'
+exoplayer_real_version='2.19.1'
+
+accompanist_version='0.26.0'
+accompanist_navigation_animation_version="0.9.0"
+
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -84,8 +90,17 @@ androidx-camera-view = { group = "androidx.camera", name = "camera-view", versio
 androidx-camera-extensions = { group = "androidx.camera", name = "camera-extensions", version.ref = "camerax_version" }
 androidx-camera-video = { group = "androidx.camera", name = "camera-video", version.ref = "camerax_version" }
 
+#exoplayer
+exoplayer-ui={group = "androidx.media3", name = "media3-ui", version.ref = "exoplayer_version"}
+exoplayer-common={group = "androidx.media3", name = "media3-common", version.ref = "exoplayer_version"}
+exoplayer-player={group = "androidx.media3", name = "media3-exoplayer", version.ref = "exoplayer_version"}
 
+exoplayer={group="com.google.android.exoplayer", name="exoplayer",version.ref ="exoplayer_real_version"}
+exoplayerUI={group="com.google.android.exoplayer", name="exoplayer-ui",version.ref ="exoplayer_real_version"}
 
+accompanist = {group="com.google.accompanist", name="accompanist-swiperefresh", version.ref="accompanist_version"}
+
+accompanist-navigation-animation = { group= "com.google.accompanist", name="accompanist-navigation-animation",version.ref="accompanist_navigation_animation_version"}
 [bundles]
 
 [plugins]

@@ -31,13 +31,16 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.comon.DevicePreview
 import com.example.comon.R
 import com.example.comon.component.Numbering
@@ -56,14 +60,20 @@ import com.example.comon.ui.theme.ComonTheme
 import com.example.comon.util.RecordUtil
 import com.example.comon.util.TextToSpeechHelper
 import com.example.comon.util.TrainingResult
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
+import java.time.Duration
 
 @Composable
 fun TrainingScreen(
     navController: NavHostController,
-    path: String,
-    difficulty: String,
-    viewModel: TrainingViewModel = viewModel()
+    path: String?,
+    difficulty: String?,
+    viewModel: TrainingViewModel = viewModel(),
+    viewModel2: HomeViewModel = viewModel()
 ) {
+    val scope = rememberCoroutineScope()
+
     var courseLevel by rememberSaveable { mutableIntStateOf(1) } //1번 문제 (1/10)
     var trainingString by rememberSaveable { mutableStateOf("") } //수박
     var trainingStringSyllable by rememberSaveable { mutableStateOf(listOf("")) } //[수,박]
@@ -81,6 +91,19 @@ fun TrainingScreen(
 
     val context = LocalContext.current
     val textToSpeechHelper = remember { TextToSpeechHelper(context) }
+
+    var videoUri by remember { mutableStateOf("") }
+
+    var imageIndex by remember { mutableIntStateOf(0) }
+    var imageList by rememberSaveable { mutableStateOf(listOf("")) }
+
+
+    LaunchedEffect(key1 = courseLevel) {
+        while (true) {
+            delay(Duration.ofSeconds(1))
+            imageIndex = (imageIndex + 1) % imageList.size
+        }
+    }
 
     DisposableEffect(textToSpeechHelper) {
         onDispose {
@@ -116,6 +139,17 @@ fun TrainingScreen(
     val addResults: (TrainingResult) -> Unit = {
         tempResultsState.add(it)
         Log.d("tempResult",tempResultsState.toString())
+
+        if (tempResultsState.size >= 10) {
+            scope.launch {
+                viewModel.sendResultsToServer(tempResultsState.toList())
+                tempResultsState.clear()
+            }
+        }
+    }
+
+    val onResult: (String) -> Unit ={
+        videoUri = it
     }
 
     LaunchedEffect(tempResultsState) {
@@ -124,7 +158,7 @@ fun TrainingScreen(
 
     LaunchedEffect(Unit) {
         trainingString = null.toString()
-        val trainingModel = TrainingModel(type = path, level = difficulty.toInt())
+        val trainingModel = TrainingModel(type = path, level = difficulty!!.toInt())
         viewModel.fetchTrainingData(trainingModel)
     }
 
@@ -135,17 +169,16 @@ fun TrainingScreen(
             // courseLevel에 해당하는 인덱스의 데이터 가져오기
             val data = response.datas?.get(courseLevel - 1)
             data?.let {
-                // 단어, 음절, 음소 가져와서 로그에 출력
                 trainingString = it.data!!
                 trainingStringSyllable = it.syllables!!
                 trainingStringPhonemes = it.phonemes!!
-                Log.d("WordScreen", "Word: ${it.data}")
-                Log.d("WordScreen", "Syllables: ${it.syllables}")
-                Log.d("WordScreen", "SyllablesIndes: ${it.syllables[0]}")
-                Log.d("WordScreen", "Phonemes: ${it.phonemes}")
-                Log.d("WordScreen", "PhonemesIndex: ${it.phonemes[0]}")
-
-                // 단어, 음절, 음소를 리스트 또는 변수에 저장하는 코드 추가...
+                imageList = it.phonemeImages!!
+//                Log.d("WordScreen", "Word: ${it.data}")
+//                Log.d("WordScreen", "Syllables: ${it.syllables}")
+//                Log.d("WordScreen", "SyllablesIndes: ${it.syllables[0]}")
+//                Log.d("WordScreen", "Phonemes: ${it.phonemes}")
+//                Log.d("WordScreen", "PhonemesIndex: ${it.phonemes[0]}")
+                Log.d("WordScreen", "phonemeImages: ${it.phonemeImages}")
             }
         }
     }
@@ -157,7 +190,7 @@ fun TrainingScreen(
     )
 
     BackDialog(openBackDialog, onClose = onClose, onDismiss = onDismiss)
-    FeedbackScreen(openDialog, onDialogChange, tempResultsState)
+    FeedbackScreen(openDialog, onDialogChange, tempResultsState, videoUri)
     if (!openDialog) {
         Box(
             modifier = Modifier
@@ -276,9 +309,22 @@ fun TrainingScreen(
                                 textAlign = TextAlign.Center,
                             )
                         )
+//                        Image(
+//                            painter = painterResource(id = R.drawable.sample_word_activity),
+//                            contentDescription = "",
+//                            modifier = Modifier
+//                                .align(Alignment.CenterHorizontally)
+//                                .width(250.dp)
+//                                .height(230.dp)
+//                                .padding(20.dp)
+//                                .clickable {
+//                                    textToSpeechHelper.speak(trainingString)
+//                                }
+//                        )
                         Image(
-                            painter = painterResource(id = R.drawable.sample_word_activity),
+                            painter = rememberAsyncImagePainter(imageList[imageIndex]),
                             contentDescription = "",
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
                                 .width(250.dp)
@@ -298,12 +344,14 @@ fun TrainingScreen(
                     originPhoneme = trainingStringPhonemes,
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally),
-                    path = path,
+                    path = path!!,
+                    difficulty = difficulty!!,
                     courseLevel = courseLevel, // courseLevel 전달
                     onCourseLevelChange = onCourseLevelChange, // courseLevel 변경 이벤트 핸들러 전달
                     openDialog = openDialog,
                     onDialogChange = onDialogChange,
-                    addResults = addResults
+                    addResults = addResults,
+                    onResult = onResult
                 )
                 Text(
                     modifier = Modifier

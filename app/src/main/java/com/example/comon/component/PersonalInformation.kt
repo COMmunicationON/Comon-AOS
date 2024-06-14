@@ -9,6 +9,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.example.comon.DevicePreview
 import com.example.comon.ui.theme.ComonTheme
+import com.example.comon.ui.theme.MainPurple
 
 @Composable
 fun PersonalInformation(
@@ -18,6 +19,7 @@ fun PersonalInformation(
     Column {
         Text(text = name, fontSize = 20.sp)
         Text(text = email, color = Color(0xFFCBC7C7), fontSize = 15.sp)
+        Text(text = "구음장애 쉬움 3단계", color = MainPurple, fontSize = 15.sp)
     }
 }
 

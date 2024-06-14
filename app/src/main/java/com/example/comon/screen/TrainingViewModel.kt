@@ -6,9 +6,16 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.comon.model.TrainingBackendResponse
 import com.example.comon.model.TrainingModel
+import com.example.comon.model.TrainingResultRequest
 import com.example.comon.network.TrainingDataService
+import com.example.comon.util.TrainingResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
+import retrofit2.HttpException
 import retrofit2.Response
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -45,6 +52,25 @@ class TrainingViewModel : ViewModel() {
                     Log.e("TrainingViewModel", "Unknown error: ${t.message}")
                     // Handle other errors here
                 }
+            }
+        })
+    }
+
+    suspend fun sendResultsToServer(results: List<TrainingResult>) {
+        val request = TrainingResultRequest(results)
+        val api = TrainingDataService.getInstance()
+        val call = api.sendTrainingResults(request)
+        call.enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    Log.d("Retrofit", "Results sent successfully")
+                } else {
+                    Log.e("Retrofit", "Failed to send results")
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Log.e("Retrofit", "Error: ${t.message}")
             }
         })
     }

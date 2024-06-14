@@ -28,7 +28,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -54,9 +57,31 @@ import com.example.comon.ui.theme.ComonTheme
 import com.example.comon.ui.theme.Purple40
 
 @Composable
-fun HomeScreen(navController : NavController) {
+fun HomeScreen(navController : NavController, viewModel: HomeViewModel = viewModel()) {
+
+
+
     val username: String by remember { mutableStateOf("상이") } //user name
-    val weakness by remember { mutableStateOf("ㄴ") } //user weakness
+    var weakness by remember { mutableStateOf("ㄴ") } //user weakness
+
+    val trainingData by viewModel.trainingData.observeAsState()
+
+
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchRecommendData()
+    }
+    
+    LaunchedEffect(key1 = trainingData) {
+        trainingData?.let { response ->
+            val data = response.weak_phoneme
+            data?.let {
+                // 단어, 음절, 음소 가져와서 로그에 출력
+                weakness = it
+            }
+        }
+    }
+    
 
     Box(
         modifier = Modifier
@@ -93,7 +118,10 @@ fun HomeScreen(navController : NavController) {
                     Icon(
                         painter = painterResource(R.drawable.bell),
                         tint = Purple40,
-                        contentDescription = "bell"
+                        contentDescription = "bell",
+                        modifier = Modifier.clickable {
+                            navController.navigate("ALARM")
+                        }
                     )
                 }
             }
